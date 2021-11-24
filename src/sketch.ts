@@ -1,38 +1,80 @@
-import { Scene, PerspectiveCamera, WebGLRenderer, TorusKnotGeometry, MeshNormalMaterial, Mesh } from "three";
+import {
+  Scene,
+  PerspectiveCamera,
+  WebGLRenderer,
+  BoxGeometry,
+  MeshBasicMaterial,
+  Mesh,
+  Clock,
+} from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import * as dat from "lil-gui";
+
+const gui = new dat.GUI();
+const sizes = {
+  width: window.innerWidth,
+  height: window.innerHeight,
+}
+window.addEventListener("resize", () => {
+  // update sizes
+  sizes.width = window.innerWidth;
+  sizes.height = window.innerHeight;
+
+  // update camera
+  camera.aspect = sizes.width / sizes.height;
+  camera.updateProjectionMatrix();
+
+  // update renderer
+  renderer.setSize(sizes.width, sizes.height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+});
 
 /**
  * SETUP: Renderer
  */
 const renderer = new WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setSize(sizes.width, sizes.height);
 export const domElement = renderer.domElement;
 
 /**
  * SETUP: Camera
  */
-const camera = new PerspectiveCamera(
-  75, // FOV (degrees)
-  window.innerWidth / window.innerHeight, // aspect ratio
-  0.1, // near clipping plane
-  1000 // far clipping plane
-);
-camera.position.z = 5;
+const aspectRatio = sizes.width / sizes.height;
+const camera = new PerspectiveCamera(75, aspectRatio, 0.1, 100);
+camera.position.z = 2;
+
+/**
+ * SETUP: Controls
+ */
+const controls = new OrbitControls(camera, domElement);
+controls.enableDamping = true;
 
 /**
  * SETUP: Scene
  */
 const scene = new Scene();
-const geometry = new TorusKnotGeometry();
-const material = new MeshNormalMaterial();
-const shape = new Mesh(geometry, material);
-scene.add(shape);
+
+const geometry = new BoxGeometry(1, 1, 1);
+const material = new MeshBasicMaterial({ color: 0xf0f000, wireframe: false });
+
+const mesh = new Mesh(
+  geometry,
+  material,
+);
+scene.add(mesh);
+
+gui.add(material, "wireframe");
 
 /**
  * ANIMATE
  */
-export function animate() {
-	requestAnimationFrame(animate);
-  shape.rotation.x += 0.01;
-  shape.rotation.y += 0.01;
+const clock = new Clock();
+
+export const tick = () => {
+  const elapsed = clock.getElapsedTime();
+
+  controls.update();
+
 	renderer.render(scene, camera);
+	requestAnimationFrame(tick);
 }
