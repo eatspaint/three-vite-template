@@ -1,4 +1,4 @@
-import { domElement, animate } from "./sketch";
+import { domElement, tick } from "./sketch";
 
 document.body.appendChild(domElement);
-animate();
+tick();
